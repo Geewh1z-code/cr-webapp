@@ -1,39 +1,29 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Connect</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; padding: 16px; }
-      .hint { opacity: .8; }
-    </style>
-  </head>
-  <body>
-    <div class="hint">Подключаю…</div>
+<head>
+  <meta charset="utf-8" />
+  <title>Test</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <pre id="out">loading...</pre>
+  <script>
+    const out = document.getElementById("out");
+    const tg = window.Telegram && window.Telegram.WebApp;
 
-    <script>
-      (function () {
-        try {
-          const tg = window.Telegram.WebApp;
-          tg.ready();
+    out.textContent =
+      "Telegram object: " + (!!window.Telegram) + "\n" +
+      "WebApp object: " + (!!tg) + "\n" +
+      "initData length: " + (tg && tg.initData ? tg.initData.length : 0) + "\n" +
+      "platform: " + (tg && tg.platform ? tg.platform : "") + "\n" +
+      "version: " + (tg && tg.version ? tg.version : "") + "\n";
 
-          const initData = tg.initData || "";
-          if (!initData) {
-            document.body.innerHTML = "Ошибка: откройте через кнопку в Telegram.";
-            return;
-          }
-
-          // Отправляем initData в бота
-          tg.sendData(JSON.stringify({ type: "initData", initData }));
-
-          // Закрываем WebApp
-          setTimeout(() => tg.close(), 250);
-        } catch (e) {
-          document.body.innerHTML = "Ошибка: " + (e?.message || e);
-        }
-      })();
-    </script>
-  </body>
+    if (tg && tg.initData) {
+      tg.sendData(JSON.stringify({type:"initData", initData: tg.initData}));
+      out.textContent += "\nSent to bot. Closing...";
+      setTimeout(()=>tg.close(), 500);
+    }
+  </script>
+</body>
 </html>
+
