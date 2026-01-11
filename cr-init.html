@@ -4,37 +4,71 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; padding: 16px; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #111; color:#0f0; padding: 12px; border-radius: 10px; }
+  </style>
 </head>
 <body>
-  Подключаю…
+  <h3>Connect</h3>
+  <pre id="log">Loading…</pre>
+
   <script>
+    const el = document.getElementById("log");
+    function L(x){ el.textContent += x + "\n"; }
+
     (async function () {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
+      try {
+        const tg = window.Telegram?.WebApp;
+        L("Telegram obj: " + !!window.Telegram);
+        L("WebApp obj: " + !!tg);
 
-      const initData = tg.initData || "";
-      const userId = tg.initDataUnsafe?.user?.id;
+        if (!tg) {
+          L("ERROR: no WebApp");
+          return;
+        }
 
-      if (!initData || !userId) {
-        document.body.textContent = "Ошибка: нет initData/userId";
-        return;
+        tg.ready();
+        const initData = tg.initData || "";
+        const userId = tg.initDataUnsafe?.user?.id;
+
+        L("initData len: " + initData.length);
+        L("userId: " + userId);
+
+        if (!initData || !userId) {
+          L("ERROR: missing initData/userId");
+          return;
+        }
+
+        // ВСТАВЬ СЮДА СВОЙ TRYCF URL
+        const BRIDGE = "https://round-buttons-flooring-sonic.trycloudflare.com";
+        const url = BRIDGE + "/save";
+        L("POST -> " + url);
+
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 8000);
+
+        const r = await fetch(url, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ initData, tgUserId: userId }),
+          signal: ctrl.signal
+        });
+
+        L("HTTP status: " + r.status);
+        const txt = await r.text();
+        L("Response: " + txt);
+
+        if (r.ok) {
+          L("✅ Saved. Closing…");
+          setTimeout(() => tg.close(), 800);
+        } else {
+          L("❌ Save failed");
+        }
+
+      } catch (e) {
+        L("EXCEPTION: " + (e?.message || e));
       }
-
-      const BRIDGE = "https://something-xyz.trycloudflare.com"; // <-- ВСТАВЬ СЮДА
-      const r = await fetch(BRIDGE + "/save", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ initData, tgUserId: userId })
-      });
-
-      const j = await r.json();
-      if (!j.ok) {
-        document.body.textContent = "Ошибка: " + (j.error || "save failed");
-        return;
-      }
-
-      document.body.textContent = "✅ Готово!";
-      setTimeout(() => tg.close(), 700);
     })();
   </script>
 </body>
