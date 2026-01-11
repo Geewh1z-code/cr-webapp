@@ -1,27 +1,29 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Connect</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  </head>
-  <body>
-    Подключаю…
-    <script>
-      (function () {
-        const tg = window.Telegram.WebApp;
-        tg.ready();
+<head>
+  <meta charset="utf-8" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <h3>Connect</h3>
+  <button id="btn">Send initData</button>
+  <pre id="out"></pre>
 
-        const initData = tg.initData || "";
-        if (!initData) {
-          document.body.textContent = "Ошибка: initData пустая";
-          return;
-        }
+  <script>
+    const out = document.getElementById("out");
+    const tg = window.Telegram.WebApp;
+    tg.ready();
 
-        tg.sendData(JSON.stringify({ type: "initData", initData }));
-        setTimeout(() => tg.close(), 250);
-      })();
-    </script>
-  </body>
+    out.textContent =
+      "WebApp: " + !!tg + "\n" +
+      "initData len: " + (tg.initData ? tg.initData.length : 0) + "\n";
+
+    document.getElementById("btn").onclick = () => {
+      const initData = tg.initData || "";
+      tg.sendData(JSON.stringify({type:"initData", initData}));
+      out.textContent += "\nSent. Wait 2 seconds...\n";
+      setTimeout(() => { out.textContent += "Now closing\n"; tg.close(); }, 2000);
+    };
+  </script>
+</body>
 </html>
